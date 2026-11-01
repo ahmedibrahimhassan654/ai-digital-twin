@@ -45,21 +45,31 @@ def clean_history(history):
 
 
 def assistant_turn(message):
-    """Rebuild the assistant message as a clean dict for the next request."""
+    """Rebuild the assistant message as a clean dict for the next request.
+
+    Gemini 3 attaches a `thought_signature` to every function call in
+    `extra_content` and rejects the follow-up request if it is not sent back,
+    so it is carried over verbatim.
+    """
+    tool_calls = []
+    for call in message.tool_calls or []:
+        entry = {
+            "id": call.id,
+            "type": "function",
+            "function": {
+                "name": call.function.name,
+                "arguments": call.function.arguments,
+            },
+        }
+        extra_content = getattr(call, "extra_content", None)
+        if extra_content:
+            entry["extra_content"] = extra_content
+        tool_calls.append(entry)
+
     return {
         "role": "assistant",
         "content": message.content or "",
-        "tool_calls": [
-            {
-                "id": call.id,
-                "type": "function",
-                "function": {
-                    "name": call.function.name,
-                    "arguments": call.function.arguments,
-                },
-            }
-            for call in message.tool_calls or []
-        ],
+        "tool_calls": tool_calls,
     }
 
 

@@ -181,14 +181,16 @@ Sample run:
 ```
 PASS  env keys  -  GOOGLE_API_KEY found
 PASS  pushover keys  -  both Pushover keys found
-PASS  loads context  -  prompt built from 10996 chars of PDF text
+PASS  loads context  -  prompt built from 11093 chars of PDF text
 PASS  cleans history  -  metadata and empty turns removed
 PASS  tools registered  -  2 tools: record_unknown_question, record_user_details
+PASS  keeps thought signature  -  tool calls keep their thought_signature
 PASS  smoke chat  -  I am the digital twin of Ahmed Ibrahim, a Full Stack ...
 PASS  remembers name  -  history reached the model
 PASS  answers without crashing  -  off-topic question handled
+PASS  completes tool round  -  tool round trip completed, 1 notification stubbed
 
-8/8 checks passed
+10/10 checks passed
 ```
 
 ### Manual checks
@@ -227,6 +229,7 @@ Gradio reads the last two at startup, so no code change is needed. On the free t
 | `FileNotFoundError: linkedin.pdf` | Stale copy or wrong working directory | Paths are resolved from `context.py`'s location — re-clone or check the file exists |
 | `The api_key client option must be set` | `.env` missing or not loaded | Create `.env` from `.env.example`; `load_dotenv(override=True)` runs on import |
 | `400` mentioning unknown fields | Gradio history passed through untouched | `clean_history()` should handle it — check you're running this version of `app.py` |
+| `400` mentioning `thought_signature` | `extra_content` was dropped when rebuilding the assistant message | `assistant_turn()` must carry `extra_content` through — `python check.py --offline` fails `keeps thought signature` if it doesn't |
 | No notification arrives | Bad or missing Pushover keys | `python check.py --push` reports the actual failure |
 | Long silence, then an apology | Model timeout or `503` from the provider | Retry; the loop caps tool rounds and catches errors |
 | `HTTP_422_UNPROCESSABLE_ENTITY is deprecated` in the console | Gradio/Starlette warning | Harmless, ignore it |

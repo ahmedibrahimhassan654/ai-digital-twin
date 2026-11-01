@@ -75,6 +75,31 @@ def tools_registered():
     return f"{len(names)} tools: {', '.join(sorted(names))}"
 
 
+def keeps_thought_signature():
+    from types import SimpleNamespace
+
+    from app import assistant_turn
+
+    signature = {"google": {"thought_signature": "abc123"}}
+    message = SimpleNamespace(
+        content=None,
+        tool_calls=[
+            SimpleNamespace(
+                id="call_1",
+                function=SimpleNamespace(
+                    name="record_user_details", arguments='{"email":"a@b.com"}'
+                ),
+                extra_content=signature,
+            )
+        ],
+    )
+    call = assistant_turn(message)["tool_calls"][0]
+    assert call.get("extra_content") == signature, (
+        "thought_signature dropped - Gemini rejects the follow-up request"
+    )
+    return "tool calls keep their thought_signature"
+
+
 # --------------------------------------------------------------------------
 # live checks (these call Gemini)
 # --------------------------------------------------------------------------
@@ -106,6 +131,33 @@ def answers_without_crashing():
     reply = chat("What is the capital of France?", [])
     assert reply and len(reply) > 10, f"empty reply: {reply!r}"
     return "off-topic question handled"
+
+
+def completes_tool_round():
+    """An email should produce a tool round trip, not the apology sentence.
+
+    `push` is stubbed so a live run does not buzz the phone; `--push` covers
+    real delivery.
+    """
+    import tools
+    from app import chat
+
+    sent = []
+
+    def fake_push(text):
+        sent.append(text)
+        return True
+
+    original_push = tools.push
+    tools.push = fake_push
+    try:
+        reply = chat("I'd like to get in touch - check@example.com", [])
+    finally:
+        tools.push = original_push
+
+    assert "technical problem" not in reply.lower(), f"tool round failed: {reply!r}"
+    assert sent, f"the model never called a tool: {reply!r}"
+    return f"tool round trip completed, {len(sent)} notification stubbed"
 
 
 # --------------------------------------------------------------------------
@@ -146,10 +198,17 @@ def main():
     parser.add_argument("--push", action="store_true", help="also run checks that notify your phone")
     args = parser.parse_args()
 
-    checks = [env_keys, pushover_keys, loads_context, cleans_history, tools_registered]
+    checks = [
+        env_keys,
+        pushover_keys,
+        loads_context,
+        cleans_history,
+        tools_registered,
+        keeps_thought_signature,
+    ]
 
     if not args.offline:
-        checks += [smoke_chat, remembers_name, answers_without_crashing]
+        checks += [smoke_chat, remembers_name, answers_without_crashing, completes_tool_round]
 
     if args.push:
         checks += [pushover_delivery, record_user_details_tool, record_unknown_question_tool]
