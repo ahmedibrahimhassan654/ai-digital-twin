@@ -1,0 +1,3 @@
+# Keep the repo LF-only so it behaves the same on Windows and on Render.
+* text=auto eol=lf
+*.pdf binary
