@@ -2,23 +2,43 @@
 
 Three groups of checks:
 
-* offline  - environment, file loading, history cleaning. No network, no cost.
+* offline  - environment, file loading, history cleaning, every tool called directly.
+             No network, no cost, no notifications.
 * live     - real calls to Gemini. Takes a few seconds and a few tokens.
 * --push   - tools that send a real notification to your phone.
 
 Usage:
     python check.py            # offline + live chat checks
     python check.py --offline  # offline only (no API calls, no cost)
+    python check.py --tools    # only the six tool checks
     python check.py --push     # everything, including a real notification
 """
 
 import argparse
 import os
 import sys
+from contextlib import contextmanager
 
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
+
+
+@contextmanager
+def stub_push(module):
+    """Swap push() for a recorder so a check never buzzes a real phone."""
+    sent = []
+
+    def fake_push(text):
+        sent.append(text)
+        return True
+
+    original = module.push
+    module.push = fake_push
+    try:
+        yield sent
+    finally:
+        module.push = original
 
 
 # --------------------------------------------------------------------------
@@ -142,22 +162,71 @@ def completes_tool_round():
     import tools
     from app import chat
 
-    sent = []
-
-    def fake_push(text):
-        sent.append(text)
-        return True
-
-    original_push = tools.push
-    tools.push = fake_push
-    try:
+    with stub_push(tools) as sent:
         reply = chat("I'd like to get in touch - check@example.com", [])
-    finally:
-        tools.push = original_push
 
     assert "technical problem" not in reply.lower(), f"tool round failed: {reply!r}"
     assert sent, f"the model never called a tool: {reply!r}"
     return f"tool round trip completed, {len(sent)} notification stubbed"
+
+
+# --------------------------------------------------------------------------
+# tool checks (offline - every tool is called directly, push is stubbed)
+# --------------------------------------------------------------------------
+
+
+def lookup_project_catalogue():
+    import tools
+
+    assert tools.PROJECTS, "projects.json is empty or missing"
+    result = tools.lookup_project("car rental")
+    assert result["matches"], result
+    top = result["matches"][0]["name"]
+    assert "car rental" in top.lower(), f"unexpected top match: {top}"
+
+    unrelated = tools.lookup_project("quantum basket weaving")
+    assert not unrelated["matches"], f"matched something irrelevant: {unrelated}"
+    return f"{len(result['matches'])} match(es) for 'car rental', unrelated query rejected"
+
+
+def contact_details():
+    import tools
+
+    details = tools.get_contact_details()
+    for field in ("email", "linkedin", "portfolio", "location"):
+        assert details.get(field), f"missing {field}: {details}"
+    assert details["linkedin"].startswith("https://"), details["linkedin"]
+    return f"{len(details)} fields, portfolio {details['portfolio']}"
+
+
+def rating_tool():
+    import tools
+
+    with stub_push(tools) as sent:
+        good = tools.record_conversation_rating(5, "very helpful")
+        too_high = tools.record_conversation_rating(9)
+        not_a_number = tools.record_conversation_rating("great")
+
+    assert good["ok"] is True and good["notified"] is True, good
+    assert too_high["ok"] is False, too_high
+    assert not_a_number["ok"] is False, not_a_number
+    assert len(sent) == 1, f"expected one notification, got {len(sent)}"
+    return "1-5 accepted, 9 and non-numeric rejected, 1 notification"
+
+
+def escalation_tool():
+    import tools
+
+    with stub_push(tools) as sent:
+        high = tools.escalate_to_human("Contract enquiry from a recruiter", "high")
+        default = tools.escalate_to_human("Wants to speak to a human")
+
+    assert high["ok"] and high["ticket"].startswith("ESC-"), high
+    assert high["urgency"] == "high", high
+    assert default["urgency"] == "normal", default
+    assert high["ticket"] != default["ticket"], "tickets must be unique"
+    assert sent[0].startswith("[HIGH]"), sent[0]
+    return f"ticket {high['ticket']} at high urgency, urgency defaults to normal"
 
 
 # --------------------------------------------------------------------------
@@ -195,23 +264,34 @@ def record_unknown_question_tool():
 def main():
     parser = argparse.ArgumentParser(description="Run smoke checks for the digital twin.")
     parser.add_argument("--offline", action="store_true", help="skip checks that call the LLM")
+    parser.add_argument("--tools", action="store_true", help="only run the tool checks")
     parser.add_argument("--push", action="store_true", help="also run checks that notify your phone")
     args = parser.parse_args()
 
-    checks = [
-        env_keys,
-        pushover_keys,
-        loads_context,
-        cleans_history,
-        tools_registered,
-        keeps_thought_signature,
-    ]
+    tool_checks = [lookup_project_catalogue, contact_details, rating_tool, escalation_tool]
 
-    if not args.offline:
-        checks += [smoke_chat, remembers_name, answers_without_crashing, completes_tool_round]
+    if args.tools:
+        checks = tool_checks
+    else:
+        checks = [
+            env_keys,
+            pushover_keys,
+            loads_context,
+            cleans_history,
+            tools_registered,
+            keeps_thought_signature,
+        ] + tool_checks
 
-    if args.push:
-        checks += [pushover_delivery, record_user_details_tool, record_unknown_question_tool]
+        if not args.offline:
+            checks += [
+                smoke_chat,
+                remembers_name,
+                answers_without_crashing,
+                completes_tool_round,
+            ]
+
+        if args.push:
+            checks += [pushover_delivery, record_user_details_tool, record_unknown_question_tool]
 
     failures = 0
     for check in checks:

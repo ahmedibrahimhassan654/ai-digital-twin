@@ -1,0 +1,112 @@
+{
+  "projects": [
+    {
+      "name": "Ticketing and workflow platform",
+      "company": "Freelance",
+      "role": "Full Stack Engineer",
+      "period": "2024",
+      "stack": ["Next.js", "React", "Node.js", "Express", "MongoDB", "Tailwind CSS", "JWT"],
+      "keywords": ["ticketing", "workflow", "rbac", "admin", "manager", "employee", "issue tracking"],
+      "highlights": [
+        "Real-time issue tracking across departments",
+        "Role-based access control for admins, managers and employees",
+        "Secure REST APIs with JWT and cookie authentication",
+        "Deployed to Netlify with environment-based configuration"
+      ]
+    },
+    {
+      "name": "Skyline car rental backend",
+      "company": "Dcentrify",
+      "role": "Node.js Backend Developer",
+      "period": "Aug 2024 - Jan 2025",
+      "stack": ["Node.js", "Express", "MongoDB", "REST APIs"],
+      "keywords": ["car rental", "rental", "pricing", "scheduling", "commission", "driver", "client", "skyline"],
+      "highlights": [
+        "Modular, secure backend architecture for a car rental platform",
+        "Rental scheduling, pricing calculations and admin commission handling",
+        "Driver and client roles with authentication and authorisation",
+        "Documented REST APIs used by the web and mobile teams"
+      ]
+    },
+    {
+      "name": "Real-time chat backend",
+      "company": "Start Tech",
+      "role": "Backend Developer",
+      "period": "Feb 2025 - Jun 2025",
+      "stack": ["Socket.io", "Express", "MongoDB", "AWS EC2", "PM2"],
+      "keywords": ["chat", "realtime", "real-time", "socket", "rooms", "messages", "aws", "ec2"],
+      "highlights": [
+        "Instant message delivery and storage with Socket.io",
+        "Event-driven architecture for chat rooms and message history",
+        "User session handling and scalable event dispatch",
+        "Deployed to AWS EC2 behind PM2"
+      ]
+    },
+    {
+      "name": "Workflow admin dashboard",
+      "company": "Start Tech",
+      "role": "Frontend Developer (Next.js + TypeScript)",
+      "period": "Dec 2024 - May 2025",
+      "stack": ["Next.js", "TypeScript", "Tailwind CSS", "PM2"],
+      "keywords": ["dashboard", "admin", "frontend", "typescript", "modular ui", "workflow"],
+      "highlights": [
+        "TypeScript dashboard integrated with a backend REST API",
+        "Responsive modular UI with Tailwind CSS across devices",
+        "Clean component architecture with optimised frontend performance",
+        "Deployed to a production Linux environment with PM2"
+      ]
+    },
+    {
+      "name": "Multi-vendor ecommerce and automotive listings API",
+      "company": "Dcentrify",
+      "role": "Node.js Backend Developer",
+      "period": "May 2024 - Aug 2024",
+      "stack": ["Node.js", "Express", "MongoDB", "Swagger"],
+      "keywords": ["ecommerce", "marketplace", "multi vendor", "listings", "automotive", "search", "filter"],
+      "highlights": [
+        "Platform for automotive listings with advanced filtering and search",
+        "E-commerce APIs with robust security and data validation",
+        "Server-side applications built on Node.js and Express"
+      ]
+    },
+    {
+      "name": "Ecommerce APIs for mobile apps",
+      "company": "Ekhliil",
+      "role": "Node.js Backend Developer",
+      "period": "Dec 2020 - May 2021",
+      "stack": ["Node.js", "Express", "MongoDB", "Swagger"],
+      "keywords": ["ecommerce", "mobile", "backend", "swagger", "documentation"],
+      "highlights": [
+        "RESTful APIs for e-commerce back ends behind mobile applications",
+        "API documentation in Swagger for mobile and frontend teams"
+      ]
+    },
+    {
+      "name": "Radar and air navigation Linux infrastructure",
+      "company": "NANSC",
+      "role": "Linux System Administrator",
+      "period": "Aug 2024 - present",
+      "stack": ["CentOS", "RedHat Linux", "Radar", "Redundancy", "Disaster recovery"],
+      "keywords": ["linux", "radar", "aviation", "surveillance", "psr", "ssr", "ads-b", "mlat", "sdps", "sysadmin", "infrastructure"],
+      "highlights": [
+        "Administration of Linux systems behind radar surveillance platforms",
+        "Uptime, security and recovery for critical radar computing units",
+        "Integration with PSR, SSR, ADS-B, MLAT and Mode S sensors",
+        "Patching and documented procedures aligned with aviation safety standards"
+      ]
+    },
+    {
+      "name": "Satellite network operations",
+      "company": "Egyptsat Telecom",
+      "role": "Satellite Network Engineer",
+      "period": "2012 - 2017",
+      "stack": ["Satellite systems", "Command systems", "Remote operations"],
+      "keywords": ["satellite", "orbiting", "command", "telecom", "network"],
+      "highlights": [
+        "Designed operating programmes for orbiting satellites",
+        "Built command systems and remotely controlled satellite activity",
+        "Monitored satellite health and service availability"
+      ]
+    }
+  ]
+}
