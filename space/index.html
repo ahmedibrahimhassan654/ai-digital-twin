@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Digital Twin — Ahmed Ibrahim</title>
+<meta name="description" content="An AI that answers for me. A chat assistant built on my CV and LinkedIn profile, with tool calling, lead capture and escalations." />
+<meta property="og:title" content="AI Digital Twin — Ahmed Ibrahim" />
+<meta property="og:description" content="A chat assistant built on my CV and LinkedIn profile. Ask it about my experience, projects and stack." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230d0d10'/%3E%3Cpath d='M9 22V10h5.5a4 4 0 0 1 0 8H12' stroke='%23ecad0a' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='23' cy='21' r='2.2' fill='%23209dd7'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --gold: #ecad0a;
+    --blue: #209dd7;
+    --purple: #753991;
+    --bg: #0d0d10;
+    --surface: #15151a;
+    --surface-2: #1b1b21;
+    --border: #292931;
+    --border-strong: #3a3a45;
+    --text: #ececef;
+    --muted: #8f8f9a;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --radius: 4px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(900px 500px at 15% -10%, rgba(236, 173, 10, .10), transparent 70%),
+      radial-gradient(700px 400px at 90% 0%, rgba(32, 157, 215, .10), transparent 70%);
+    background-repeat: no-repeat;
+  }
+
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+  .wrap { width: min(1080px, 100% - 48px); margin-inline: auto; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 22px 0 0; flex-wrap: wrap;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; letter-spacing: -0.02em;
+  }
+  .brand .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--gold); box-shadow: 0 0 0 4px rgba(236, 173, 10, .16);
+  }
+  .nav { display: flex; gap: 20px; font-size: 14px; }
+  .nav a { color: var(--muted); }
+  .nav a:hover { color: var(--text); text-decoration: none; }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 64px 0 40px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 48px; align-items: end; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--gold); margin: 0 0 18px;
+  }
+  h1 {
+    margin: 0 0 20px; font-size: clamp(34px, 5vw, 56px); line-height: 1.06;
+    letter-spacing: -0.035em; font-weight: 800;
+  }
+  h1 em { font-style: normal; color: var(--gold); }
+  .lede { margin: 0; font-size: 18px; color: #b9b9c4; max-width: 56ch; }
+  .lede strong { color: var(--text); font-weight: 600; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; padding: 0; list-style: none; }
+  .chips li {
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+    border: 1px solid var(--border); background: var(--surface);
+    padding: 5px 10px; border-radius: 999px;
+  }
+
+  .stat-card {
+    border: 1px solid var(--border); background: linear-gradient(180deg, var(--surface), #121217);
+    padding: 22px; border-radius: var(--radius);
+  }
+  .stat-card dl { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
+  .stat-card dt { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .stat-card dd { margin: 4px 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .stat-card dd span { font-size: 13px; font-weight: 500; color: var(--muted); display: block; letter-spacing: 0; }
+
+  /* ---------- sections ---------- */
+  section { padding: 56px 0; border-top: 1px solid var(--border); }
+  h2 {
+    margin: 0 0 8px; font-size: 13px; font-family: var(--mono);
+    letter-spacing: .14em; text-transform: uppercase; color: var(--gold);
+  }
+  .section-lede { margin: 0 0 32px; font-size: 22px; letter-spacing: -0.02em; color: #cfcfd8; max-width: 60ch; }
+
+  /* ---------- demo ---------- */
+  .demo {
+    display: grid; grid-template-columns: 280px 1fr; gap: 0;
+    border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .scenarios { border-right: 1px solid var(--border); padding: 18px; background: #101015; }
+  .scenarios h3 {
+    margin: 0 0 14px; font-family: var(--mono); font-size: 11px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 500;
+  }
+  .scenarios button {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: transparent; border: 1px solid transparent; border-radius: var(--radius);
+    color: #c7c7d2; font: inherit; font-size: 14px; padding: 10px 12px; margin-bottom: 4px;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .scenarios button:hover { background: var(--surface-2); color: var(--text); }
+  .scenarios button[aria-pressed="true"] {
+    background: var(--surface-2); border-color: var(--border-strong); color: var(--text);
+    box-shadow: inset 2px 0 0 var(--gold);
+  }
+
+  .chat {
+    display: flex; flex-direction: column; min-height: 420px; max-height: 520px;
+  }
+  .chat-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--muted);
+  }
+  .chat-head .live { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .chat-head .live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); }
+  .chat-log { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+  .chat-log:focus-visible { outline-offset: -2px; }
+
+  .msg { max-width: 88%; }
+  .msg .who {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 5px;
+  }
+  .msg .bubble {
+    padding: 11px 14px; border-radius: var(--radius); font-size: 15px; line-height: 1.55;
+  }
+  .msg.user { align-self: flex-end; }
+  .msg.user .who { text-align: right; }
+  .msg.user .bubble { background: #23232b; border: 1px solid var(--border-strong); }
+  .msg.bot .bubble { background: #121218; border: 1px solid var(--border); }
+  .msg.note .bubble {
+    font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+    border: 1px dashed var(--border-strong); background: transparent;
+  }
+
+  .tool {
+    border: 1px solid rgba(236, 173, 10, .35);
+    background: rgba(236, 173, 10, .06);
+    border-left: 3px solid var(--gold);
+    padding: 9px 12px; border-radius: var(--radius);
+    font-family: var(--mono); font-size: 12px; color: #d8c48f;
+    max-width: 92%; word-break: break-word;
+  }
+  .tool b { color: var(--gold); font-weight: 600; }
+  .tool .args { color: #a9a9b6; display: block; margin-top: 3px; }
+
+  .typing span {
+    display: inline-block; width: 5px; height: 5px; margin-right: 3px; border-radius: 50%;
+    background: var(--muted); animation: blink 1.1s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: .15s; }
+  .typing span:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 0%, 60%, 100% { opacity: .25 } 30% { opacity: 1 } }
+
+  /* ---------- flow ---------- */
+  .flow {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: stretch;
+  }
+  .node {
+    border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius);
+    padding: 16px; position: relative;
+  }
+  .node .k { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .node .v { font-weight: 600; margin-top: 6px; font-size: 15px; letter-spacing: -0.01em; }
+  .node .d { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .node.gold { border-color: rgba(236, 173, 10, .4); }
+  .flow-arrow { display: none; }
+
+  pre {
+    margin: 0; padding: 18px 20px; overflow-x: auto;
+    background: #0b0b0f; border: 1px solid var(--border); border-radius: var(--radius);
+    font-family: var(--mono); font-size: 13px; line-height: 1.7; color: #c9c9d4;
+  }
+  pre .c { color: #6f6f7d; }
+  pre .g { color: var(--gold); }
+  pre .b { color: var(--blue); }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+
+  /* ---------- tools table ---------- */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 620px; }
+  thead th {
+    text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); font-weight: 500;
+    padding: 12px 16px; border-bottom: 1px solid var(--border); background: #101015;
+  }
+  tbody td { padding: 13px 16px; border-bottom: 1px solid var(--border); color: #c6c6d1; vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td code {
+    font-family: var(--mono); font-size: 12.5px; color: var(--gold);
+    background: rgba(236, 173, 10, .08); padding: 2px 6px; border-radius: 3px;
+  }
+
+  /* ---------- cards ---------- */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card {
+    border: 1px solid var(--border); background: var(--surface);
+    padding: 20px; border-radius: var(--radius);
+  }
+  .card h3 { margin: 0 0 8px; font-size: 15px; letter-spacing: -0.01em; }
+  .card p { margin: 0; font-size: 14px; color: var(--muted); }
+  .card .num { font-family: var(--mono); font-size: 11px; color: var(--gold); letter-spacing: .1em; }
+
+  .note-block {
+    border-left: 3px solid var(--blue); background: rgba(32, 157, 215, .07);
+    padding: 14px 18px; border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 14px; color: #b6c6d2;
+  }
+  .note-block strong { color: var(--text); }
+
+  footer { padding: 40px 0 64px; border-top: 1px solid var(--border); }
+  .foot { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .foot a { color: #b9b9c4; }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 32px; padding-top: 44px; }
+    .demo { grid-template-columns: 1fr; }
+    .scenarios { border-right: 0; border-bottom: 1px solid var(--border); }
+    .scenarios .scenario-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .scenarios button { width: auto; margin: 0; }
+    .flow { grid-template-columns: 1fr 1fr; }
+    .split, .cards { grid-template-columns: 1fr; }
+    .chat { max-height: none; }
+  }
+  @media (max-width: 560px) {
+    .flow { grid-template-columns: 1fr; }
+    .stat-card dl { grid-template-columns: 1fr 1fr; }
+    .nav { gap: 14px; font-size: 13px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand"><span class="dot" aria-hidden="true"></span> Ahmed Ibrahim</div>
+    <nav class="nav" aria-label="Contact">
+      <a href="https://github.com/ahmedibrahimhassan654/ai-digital-twin">GitHub</a>
+      <a href="https://www.linkedin.com/in/ahmed-ibrahim5588">LinkedIn</a>
+      <a href="https://ahmedwebdev.netlify.app">Portfolio</a>
+      <a href="mailto:ahmedibrahimhassan654@gmail.com">Email</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <p class="eyebrow">AI Digital Twin</p>
+      <h1>Ask my CV <em>anything.</em></h1>
+      <p class="lede">
+        A chat assistant built on my summary and full LinkedIn profile. It answers career
+        questions, looks projects up on demand, captures a recruiter's email, and pings my
+        phone when someone wants a human — <strong>without inventing experience I don't have.</strong>
+      </p>
+      <ul class="chips">
+        <li>Python 3.12</li>
+        <li>Gradio 6</li>
+        <li>Gemini 3.1 Flash Lite</li>
+        <li>OpenAI SDK</li>
+        <li>Pushover</li>
+      </ul>
+    </div>
+
+    <aside class="stat-card" aria-label="At a glance">
+      <dl>
+        <div><dt>Tools</dt><dd>6<span>hand-written schemas</span></dd></div>
+        <div><dt>Agent loop</dt><dd>~10<span>lines of Python</span></dd></div>
+        <div><dt>Tool rounds</dt><dd>5<span>capped per turn</span></dd></div>
+        <div><dt>Tests</dt><dd>14<span>checks in check.py</span></dd></div>
+      </dl>
+    </aside>
+  </div>
+
+  <section aria-labelledby="demo-heading">
+    <h2 id="demo-heading">The demo</h2>
+    <p class="section-lede">
+      Pick a question on the left. These are real runs, replayed — including the tool call the
+      model chose and the arguments it sent.
+    </p>
+
+    <p class="note-block" style="margin-bottom:18px">
+      <strong>This page is static.</strong> The live app needs a Python process, so this Space
+      replays recorded sessions. The real Gradio app is in the
+      <a href="https://github.com/ahmedibrahimhassan654/ai-digital-twin">GitHub repo</a> — one
+      command to run.
+    </p>
+
+    <div class="demo">
+      <div class="scenarios">
+        <h3 id="scenario-label">Scenarios</h3>
+        <div class="scenario-list" role="group" aria-labelledby="scenario-label">
+          <button type="button" data-scenario="identity" aria-pressed="true">Who are you?</button>
+          <button type="button" data-scenario="project" aria-pressed="false">Car rental project</button>
+          <button type="button" data-scenario="contact" aria-pressed="false">How do I reach you?</button>
+          <button type="button" data-scenario="rating" aria-pressed="false">Rate the chat 5/5</button>
+          <button type="button" data-scenario="escalate" aria-pressed="false">I'm a recruiter</button>
+          <button type="button" data-scenario="unknown" aria-pressed="false">Have you used Rust?</button>
+        </div>
+      </div>
+
+      <div class="chat">
+        <div class="chat-head">
+          <span>Digital Twin</span>
+          <span class="live">recorded session</span>
+        </div>
+        <div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-label="Conversation replay" tabindex="0"></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="how-heading">
+    <h2 id="how-heading">How it works</h2>
+    <p class="section-lede">
+      The whole agent is one loop: ask the model, run whatever tools it requests, feed the results
+      back, repeat until it answers in plain text.
+    </p>
+
+    <div class="flow" role="list">
+      <div class="node" role="listitem">
+        <div class="k">Input</div>
+        <div class="v">Gradio ChatInterface</div>
+        <div class="d">Visitor message plus the full history</div>
+      </div>
+      <div class="node gold" role="listitem">
+        <div class="k">Loop</div>
+        <div class="v">chat()</div>
+        <div class="d">Sends messages + tool schemas to Gemini</div>
+      </div>
+      <div class="node" role="listitem">
+        <div class="k">Branch</div>
+        <div class="v">finish_reason</div>
+        <div class="d">tool_calls → run tools · stop → reply</div>
+      </div>
+      <div class="node" role="listitem">
+        <div class="k">Side effects</div>
+        <div class="v">6 tools → Pushover</div>
+        <div class="d">Leads, questions, ratings, escalations</div>
+      </div>
+    </div>
+
+    <div class="split" style="margin-top:28px">
+      <div>
+        <pre><code><span class="c"># app.py — the agent loop</span>
+response = client.chat.completions.create(
+    model=MODEL_NAME, messages=messages, tools=tools
+)
+
+<span class="g">while</span> response.choices[0].finish_reason == <span class="b">"tool_calls"</span>:
+    msg = response.choices[0].message
+    results = handle_tool_calls(msg.tool_calls)
+
+    messages.append(assistant_turn(msg))  <span class="c"># what it asked for</span>
+    messages.extend(results)              <span class="c"># what happened</span>
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME, messages=messages, tools=tools
+    )
+
+<span class="g">return</span> response.choices[0].message.content</code></pre>
+      </div>
+      <div>
+        <div class="cards" style="grid-template-columns:1fr">
+          <div class="card">
+            <span class="num">01</span>
+            <h3>Stateless by design</h3>
+            <p>The full conversation is resent on every call. That is the entire "memory" of the app — refreshing the browser starts over.</p>
+          </div>
+          <div class="card">
+            <span class="num">02</span>
+            <h3>History is cleaned first</h3>
+            <p>Gradio 6 attaches metadata the API rejects, so each turn is rebuilt as <code>{role, content}</code> before it is sent.</p>
+          </div>
+          <div class="card">
+            <span class="num">03</span>
+            <h3>Failure is a sentence</h3>
+            <p>A dropped request, a bad tool call or an unknown tool returns a friendly reply instead of a stack trace in the chat window.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="tools-heading">
+    <h2 id="tools-heading">The tools</h2>
+    <p class="section-lede">
+      Tool calling is a contract in three pieces: a JSON schema, a Python function, and a lookup
+      table that joins them by name.
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th scope="col">Tool</th><th scope="col">Fires when</th><th scope="col">Effect</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>record_user_details</code></td>
+            <td>A visitor offers an email or asks to be contacted</td>
+            <td>Pushover notification with email and context</td>
+          </tr>
+          <tr>
+            <td><code>record_unknown_question</code></td>
+            <td>The answer isn't in the profile</td>
+            <td>Log the gap so the prompt can be improved</td>
+          </tr>
+          <tr>
+            <td><code>lookup_project</code></td>
+            <td>Someone asks about a project, company or technology</td>
+            <td>Keyword search over 8 curated projects, top 3 matches</td>
+          </tr>
+          <tr>
+            <td><code>get_contact_details</code></td>
+            <td>Someone asks how to reach me</td>
+            <td>Returns fixed links — never a guess, never paraphrased</td>
+          </tr>
+          <tr>
+            <td><code>record_conversation_rating</code></td>
+            <td>A visitor rates the chat</td>
+            <td>Validates 1–5, rejects the rest, notifies me</td>
+          </tr>
+          <tr>
+            <td><code>escalate_to_human</code></td>
+            <td>Recruiter, contract offer, urgent request</td>
+            <td>Mints an <code>ESC-…</code> ticket with urgency</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="honest-heading">
+    <h2 id="honest-heading">Limits, stated plainly</h2>
+    <p class="section-lede">This is a portfolio project, not a production SaaS.</p>
+    <div class="cards">
+      <div class="card">
+        <h3>No persistence</h3>
+        <p>Leads, ratings and escalations live only in the notification. A durable store is the next step.</p>
+      </div>
+      <div class="card">
+        <h3>Keyword, not vectors</h3>
+        <p><code>lookup_project</code> scores word overlaps against 8 entries. It misses paraphrases an embedding index would catch.</p>
+      </div>
+      <div class="card">
+        <h3>Prompt injection is possible</h3>
+        <p>A determined visitor can try to talk the twin out of character. Private details are kept out of the prompt.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="run-heading">
+    <h2 id="run-heading">Run it</h2>
+    <p class="section-lede">Two commands and a free Gemini key.</p>
+    <pre><code>git clone https://github.com/ahmedibrahimhassan654/ai-digital-twin.git
+<span class="g">cd</span> ai-digital-twin
+python -m venv .venv &amp;&amp; <span class="g">source</span> .venv/bin/activate   <span class="c"># Windows: .venv\Scripts\activate</span>
+pip install -r requirements.txt
+
+cp .env.example .env      <span class="c"># add GOOGLE_API_KEY, PUSHOVER_USER, PUSHOVER_TOKEN</span>
+python app.py             <span class="c"># http://127.0.0.1:7860</span>
+
+python check.py --tools   <span class="c"># 6 tool checks, no API calls, nothing buzzes</span>
+python check.py           <span class="c"># + four real model conversations</span></code></pre>
+    <p style="margin:14px 0 0; font-size:14px; color:var(--muted)">
+      Pushover keys are optional — without them the tools log instead of notifying.
+    </p>
+  </section>
+
+  <footer>
+    <div class="foot">
+      <span>Built as part of an AI engineering course, then extended with a Gemini backend, a hardened agent loop and a test script.</span>
+      <span><a href="https://github.com/ahmedibrahimhassan654/ai-digital-twin">Source on GitHub</a></span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var SCENARIOS = {
+    identity: [
+      { role: "user", text: "Who are you?" },
+      { role: "bot", text: "I'm Ahmed's AI digital twin — a chat assistant built from his CV and his full LinkedIn profile. I can talk you through his experience, projects and stack, and put you in touch with the real Ahmed.\n\nI'm not him: if something isn't in his profile, I'll say so rather than guess." }
+    ],
+    project: [
+      { role: "user", text: "Tell me about the car rental project you built." },
+      { role: "tool", name: "lookup_project", args: '{ "query": "car rental" }' },
+      {
+        role: "bot",
+        text: "That's Skyline — a car rental backend built at Dcentrify between Aug 2024 and Jan 2025, where I worked as a Node.js backend developer.\n\nIt covered rental scheduling, pricing calculations and admin commission handling, with driver and client roles behind authentication and authorisation. The REST APIs were documented and consumed by both the web and mobile teams."
+      }
+    ],
+    contact: [
+      { role: "user", text: "How can I get in touch with you?" },
+      { role: "tool", name: "get_contact_details", args: "{ }" },
+      {
+        role: "bot",
+        text: "Best routes, straight from the contact tool — nothing paraphrased:\n\n• Email: ahmedibrahimhassan654@gmail.com\n• LinkedIn: linkedin.com/in/ahmed-ibrahim5588\n• Portfolio: ahmedwebdev.netlify.app\n\nBased in Cairo, Egypt. Arabic native, English professional."
+      }
+    ],
+    rating: [
+      { role: "user", text: "I'd rate this conversation 5 out of 5, really helpful." },
+      { role: "tool", name: "record_conversation_rating", args: '{ "rating": 5 }' },
+      { role: "note", text: "Pushover: Visitor rated the conversation 5/5. Comment: No comment provided" },
+      { role: "bot", text: "Thank you — that's noted. Anything else you'd like to dig into? The projects catalogue is usually the most interesting part." }
+    ],
+    escalate: [
+      { role: "user", text: "I'm a recruiter with a contract offer. Can a human reply today?" },
+      { role: "tool", name: "escalate_to_human", args: '{ "reason": "Recruiter with a contract offer, requesting a human reply today.", "urgency": "high" }' },
+      { role: "note", text: "Pushover: [HIGH] Escalation ESC-42B38FFA: Recruiter with a contract offer, requesting a human reply today." },
+      { role: "bot", text: "Passed on as high priority — the ticket is ESC-42B38FFA and Ahmed has it on his phone. He'll come back to you directly." }
+    ],
+    unknown: [
+      { role: "user", text: "Have you worked with Rust?" },
+      { role: "tool", name: "record_unknown_question", args: '{ "question": "Have you worked with Rust?" }' },
+      { role: "bot", text: "I can't confirm Rust from Ahmed's profile, so I won't claim it. I've logged the question so he can answer it properly — his strongest work is in Node.js and Next.js, with MongoDB and REST APIs." }
+    ]
+  };
+
+  var log = document.getElementById("chat-log");
+  var buttons = document.querySelectorAll("[data-scenario]");
+  var timers = [];
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function clearTimers() {
+    timers.forEach(clearTimeout);
+    timers = [];
+  }
+
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function addMessage(step) {
+    if (step.role === "tool") {
+      var tool = el("div", "tool");
+      tool.appendChild(el("b", null, step.name + "()"));
+      tool.appendChild(el("span", "args", step.args));
+      log.appendChild(tool);
+      return;
+    }
+
+    var wrap = el("div", "msg " + (step.role === "user" ? "user" : step.role === "note" ? "note" : "bot"));
+    wrap.appendChild(el("div", "who", step.role === "user" ? "Visitor" : step.role === "note" ? "System" : "Digital Twin"));
+    wrap.appendChild(el("div", "bubble", step.text));
+    log.appendChild(wrap);
+  }
+
+  function play(key) {
+    clearTimers();
+    log.innerHTML = "";
+
+    var steps = SCENARIOS[key];
+    if (!steps) return;
+
+    if (reduced) {
+      steps.forEach(addMessage);
+      return;
+    }
+
+    var delay = 220;
+    steps.forEach(function (step, i) {
+      timers.push(setTimeout(function () {
+        addMessage(step);
+      }, delay));
+      delay += step.role === "user" ? 420 : step.role === "bot" ? 900 : 520;
+    });
+  }
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      buttons.forEach(function (other) { other.setAttribute("aria-pressed", String(other === btn)); });
+      play(btn.getAttribute("data-scenario"));
+    });
+  });
+
+  play("identity");
+})();
+</script>
+</body>
+</html>

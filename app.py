@@ -5,6 +5,7 @@ for, feed the results back, and repeat until it answers in plain text.
 """
 
 import os
+import sys
 
 import gradio as gr
 from dotenv import load_dotenv
@@ -99,10 +100,14 @@ def chat(message, history):
 
 
 if __name__ == "__main__":
+    # `python app.py --share` (or GRADIO_SHARE=1) prints a public *.gradio.live
+    # URL so a recruiter can try the twin without you deploying anything.
+    share = "--share" in sys.argv or os.getenv("GRADIO_SHARE", "").lower() in ("1", "true", "yes")
+
     gr.ChatInterface(
         chat,
         examples=EXAMPLES,
         title="Digital Twin",
         description="Talk to my AI twin about my career",
         chatbot=gr.Chatbot(show_label=False),
-    ).launch(css=CSS, js=JS, theme=gr.themes.Base())
+    ).launch(css=CSS, js=JS, theme=gr.themes.Base(), share=share)

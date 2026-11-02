@@ -13,7 +13,9 @@ sdk_version: 6.31.0
 ![Gemini](https://img.shields.io/badge/LLM-Gemini%203.1%20Flash%20Lite-4285F4?logo=google&logoColor=white)
 ![Pushover](https://img.shields.io/badge/Notifications-Pushover-249DF1)
 
-> **Live demo:** _add your deployed URL here_
+> **Live demo:** [huggingface.co/spaces/AhmedIbrahim5588/ahmed-digital-twin](https://huggingface.co/spaces/AhmedIbrahim5588/ahmed-digital-twin) — an interactive walkthrough of six real sessions.
+>
+> **Run it locally:** `python app.py --share` prints a public `*.gradio.live` link you can send to anyone.
 
 ---
 
@@ -277,7 +279,30 @@ Run the app and walk through these. Expected results are what a reviewer should 
 
 ## Deploying
 
-The app runs unchanged on [Render](https://render.com)'s free tier. Push the contents of this repo to GitHub, create a **Web Service**, and set:
+### Option 1 — a temporary public link (no account, 30 seconds)
+
+```bash
+python app.py --share      # or: GRADIO_SHARE=1 python app.py
+```
+
+Gradio prints a `https://<id>.gradio.live` URL and tunnels traffic to your machine. Good for a
+demo call or a recruiter who wants to try it today. The link dies when the process stops, and
+your laptop must stay awake and online.
+
+### Option 2 — the showcase Space (static, always up)
+
+`space/` holds a static Space that replays six recorded sessions, including the tool call the
+model chose. It is free forever, but it cannot run Python — it is a walkthrough, not the live app.
+
+```bash
+hf upload <your-username>/ahmed-digital-twin space --repo-type space
+```
+
+### Option 3 — a permanent hosted URL (needs a paid account somewhere)
+
+The app runs unchanged on [Render](https://render.com)'s free tier. `render.yaml` in the repo
+root is a one-click blueprint: **New → Blueprint → select this repo**, then paste the three
+secrets when prompted.
 
 | Setting | Value |
 |---|---|
@@ -288,7 +313,11 @@ The app runs unchanged on [Render](https://render.com)'s free tier. Push the con
 | `GRADIO_SERVER_NAME` | `0.0.0.0` |
 | `GRADIO_SERVER_PORT` | `10000` |
 
-Gradio reads the last two at startup, so no code change is needed. On the free tier the app sleeps after 15 minutes idle and takes 30–60 seconds to wake.
+Gradio reads the last two at startup, so no code change is needed. On the free tier the app
+sleeps after 15 minutes idle and takes 30–60 seconds to wake.
+
+> Note: Hugging Face Spaces cannot host this app on a free account. Gradio and Docker Spaces
+> require PRO, and the free ZeroGPU allowance needs an account at least 30 days old.
 
 ## Troubleshooting
 
