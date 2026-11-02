@@ -10,3 +10,4 @@ __pycache__/
 emails.txt
 *.log
 .history
+.space-build/

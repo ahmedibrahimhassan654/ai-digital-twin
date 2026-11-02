@@ -26,6 +26,22 @@ client = OpenAI(base_url=GEMINI_BASE_URL, api_key=os.getenv("GOOGLE_API_KEY"))
 
 SYSTEM_MESSAGE = [{"role": "system", "content": TWIN_SYSTEM_PROMPT}]
 
+# ZeroGPU Spaces require the `spaces` package and at least one GPU-decorated
+# function before the app is allowed to run, even when nothing touches a GPU.
+# The import is optional so this file still runs locally and on Render.
+try:
+    import spaces
+except ImportError:  # not on a ZeroGPU Space
+    spaces = None
+
+
+if spaces is not None:
+
+    @spaces.GPU(duration=1)
+    def keep_zerogpu_runtime_happy():
+        """No-op: ZeroGPU rejects a Space with no GPU-decorated function."""
+        return "ok"
+
 
 def clean_history(history):
     """Keep only role/content keys.
