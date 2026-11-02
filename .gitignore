@@ -9,3 +9,4 @@ __pycache__/
 # local artefacts
 emails.txt
 *.log
+.history

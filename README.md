@@ -1,3 +1,9 @@
+---
+title: ahmed-agent-assistanc
+app_file: app.py
+sdk: gradio
+sdk_version: 6.31.0
+---
 # AI Digital Twin
 
 **An AI that answers for me.** A chat assistant built on my CV and LinkedIn profile that talks to visitors on my portfolio site, captures their email for follow-up, and pings my phone when someone wants to get in touch — or asks something I can't answer.
