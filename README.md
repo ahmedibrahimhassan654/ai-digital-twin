@@ -1,5 +1,5 @@
 ---
-title: ahmed-agent-assistanc
+title: AI Digital Twin
 app_file: app.py
 sdk: gradio
 sdk_version: 6.31.0
