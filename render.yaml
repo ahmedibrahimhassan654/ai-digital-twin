@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: ai-digital-twin
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      # Gradio reads these two at startup and binds to the port Render expects.
+      - key: GRADIO_SERVER_NAME
+        value: "0.0.0.0"
+      - key: GRADIO_SERVER_PORT
+        value: "10000"
+      # Secrets: Render prompts for these on first deploy; never committed.
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: PUSHOVER_USER
+        sync: false
+      - key: PUSHOVER_TOKEN
+        sync: false
